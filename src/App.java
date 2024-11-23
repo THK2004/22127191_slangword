@@ -1,5 +1,11 @@
-public class App {
-    public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World test!");
+import gui.guiClass;
+
+public class app {
+    public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                guiClass.createAndShowGUI();
+            }
+        });
     }
 }
