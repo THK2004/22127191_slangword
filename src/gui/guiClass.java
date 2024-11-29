@@ -1,15 +1,18 @@
 package gui;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-
 import javax.swing.*;
+import javax.swing.event.*;
 
 import controller.controllerClass;
 
 public class guiClass extends JPanel{
     private JList<String> slangWordList;
+    private ArrayList<String> cachedSlangWordList;
     private DefaultListModel<String> slangWordListModel;
     private controllerClass controller;
 
@@ -19,7 +22,8 @@ public class guiClass extends JPanel{
 
     public guiClass(){
         controller = new controllerClass();
-        
+        cachedSlangWordList = new ArrayList<String>(Arrays.asList(controller.getSlangWordList()));
+
         setLayout(new GridBagLayout());
 
         //topLeft
@@ -28,6 +32,7 @@ public class guiClass extends JPanel{
 
         JLabel searchByNameLabel = new JLabel("Search by name: ");
         searchByName = new JTextField(15);
+        setupSearchByNameListener();
         JLabel searchByDescLabel = new JLabel("Search by description: ");
         searchByDesc = new JTextField(15);
 
@@ -130,12 +135,12 @@ public class guiClass extends JPanel{
 
     private void handleSearchByName(ActionEvent e) {
         String slang = searchByName.getText().trim();
-        String meaning = controller.searchByName(slang);
+        String result = controller.searchByName(slang);
     
-        if (meaning.equals("Slang not found")) {
+        if (result.equals("Slang not found")) {
             contentTextArea.setText("No results found for slang: " + slang);
         } else {
-            contentTextArea.setText(slang + " -> " + meaning);
+            contentTextArea.setText(result);
         }
     }
 
@@ -150,7 +155,7 @@ public class guiClass extends JPanel{
             for (String result : results) {
                 resultMessage = resultMessage + result + "\n";
             }
-            contentTextArea.setText(resultMessage.toString());
+            contentTextArea.setText(resultMessage);
         }
     }
 
@@ -171,11 +176,45 @@ public class guiClass extends JPanel{
     }
 
     private void getSlangWordList() {
-        String[] slangWords = controller.getSlangWordList();
-        for (String slang : slangWords) {
+        for (String slang : cachedSlangWordList) {
             slangWordListModel.addElement(slang);
         }
     }
+
+    private void setupSearchByNameListener() {
+        searchByName.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterSlangWords();
+            }
+    
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterSlangWords();
+            }
+    
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterSlangWords();
+            }
+    
+            private void filterSlangWords() {
+                String query = searchByName.getText().toLowerCase();
+                slangWordListModel.clear();
+    
+                if (query.isEmpty()) {
+                    slangWordListModel.addAll(cachedSlangWordList);
+                } else {
+                    for (String slang : cachedSlangWordList) {
+                        if (slang.toLowerCase().startsWith(query)) {
+                            slangWordListModel.addElement(slang);
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
 
     public static void createAndShowGUI(){
         JFrame.setDefaultLookAndFeelDecorated(true);

@@ -20,7 +20,12 @@ public class controllerClass {
     }
 
     public String searchByName(String slang) {
-        return slangWordMap.getOrDefault(slang, "Slang not found");
+        for (Map.Entry<String, String> entry : slangWordMap.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(slang)) {
+                return entry.getKey() + " -> " + entry.getValue();
+            }
+        }
+        return "Slang not found";
     }
 
     public ArrayList<String> searchByDescription(String keyword) {
