@@ -2,20 +2,23 @@ package gui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+
 import javax.swing.*;
 
-import service.serviceClass;
+import controller.controllerClass;
 
 public class guiClass extends JPanel{
     private JList<String> slangWordList;
     private DefaultListModel<String> slangWordListModel;
-    private serviceClass service;
+    private controllerClass controller;
 
     private JTextField searchByName;
     private JTextField searchByDesc;
+    private JTextArea contentTextArea;
 
     public guiClass(){
-        service = new serviceClass();
+        controller = new controllerClass();
         
         setLayout(new GridBagLayout());
 
@@ -27,6 +30,9 @@ public class guiClass extends JPanel{
         searchByName = new JTextField(15);
         JLabel searchByDescLabel = new JLabel("Search by description: ");
         searchByDesc = new JTextField(15);
+
+        searchByName.addActionListener(this::handleSearchByName);
+        searchByDesc.addActionListener(this::handleSearchByDescription);
 
         topLeft.add(searchByNameLabel);
         topLeft.add(searchByName);
@@ -104,9 +110,14 @@ public class guiClass extends JPanel{
         //Content
         JPanel content = new JPanel(new BorderLayout());
         JLabel word = new JLabel("Message: ");
-        JTextArea textArea = new JTextArea();
+        contentTextArea = new JTextArea();
+        contentTextArea.setEditable(false);
+
+        JScrollPane contentTextScrollPane = new JScrollPane(contentTextArea);
+        contentTextScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
         content.add(word, BorderLayout.PAGE_START);
-        content.add(textArea, BorderLayout.CENTER);
+        content.add(contentTextScrollPane, BorderLayout.CENTER);
 
         //Add all the panels to this panel
         addComponent(this, topLeft, 0, 0, 1, 1, 0, 0, GridBagConstraints.BOTH, GridBagConstraints.CENTER, new Insets(0, 0, 5, 5));
@@ -117,22 +128,30 @@ public class guiClass extends JPanel{
         addComponent(this, content, 1, 1, 2, 2, 200, 200, GridBagConstraints.BOTH, GridBagConstraints.CENTER, new Insets(5, 5, 0, 0));
     }
 
-    public static void createAndShowGUI(){
-        JFrame.setDefaultLookAndFeelDecorated(true);
-        JFrame frame = new JFrame();
+    private void handleSearchByName(ActionEvent e) {
+        String slang = searchByName.getText().trim();
+        String meaning = controller.searchByName(slang);
+    
+        if (meaning.equals("Slang not found")) {
+            contentTextArea.setText("No results found for slang: " + slang);
+        } else {
+            contentTextArea.setText(slang + " -> " + meaning);
+        }
+    }
 
-        frame.setTitle("Slang Word Dictionary");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        guiClass newContentPane = new guiClass();
-        newContentPane.setOpaque(true);
-        frame.setContentPane(newContentPane);
-
-        //frame.setSize(800, 500);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        
-        frame.setVisible(true);
+    private void handleSearchByDescription(ActionEvent e) {
+        String keyword = searchByDesc.getText().trim();
+        ArrayList<String> results = controller.searchByDescription(keyword);
+    
+        if (results.isEmpty()) {
+            contentTextArea.setText("No slang words found containing the keyword: " + keyword);
+        } else {
+            String resultMessage = "";
+            for (String result : results) {
+                resultMessage = resultMessage + result + "\n";
+            }
+            contentTextArea.setText(resultMessage.toString());
+        }
     }
 
     private void addComponent(JPanel panel, JComponent component, int gridx, int gridy, int gridwidth, int gridheight, int ipadx, int ipady, int fill, int anchor, Insets insets) {
@@ -152,9 +171,27 @@ public class guiClass extends JPanel{
     }
 
     private void getSlangWordList() {
-        String[] slangWords = service.getAllSlangWords();
+        String[] slangWords = controller.getSlangWordList();
         for (String slang : slangWords) {
             slangWordListModel.addElement(slang);
         }
+    }
+
+    public static void createAndShowGUI(){
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JFrame frame = new JFrame();
+
+        frame.setTitle("Slang Word Dictionary");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        guiClass newContentPane = new guiClass();
+        newContentPane.setOpaque(true);
+        frame.setContentPane(newContentPane);
+
+        //frame.setSize(800, 500);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        
+        frame.setVisible(true);
     }
 }

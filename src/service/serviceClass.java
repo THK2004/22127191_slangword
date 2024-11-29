@@ -8,8 +8,10 @@ public class serviceClass {
     private HashMap<String, String> slangWordMap;
 
     public serviceClass() {
-        slangWordMap = new HashMap<>();
-        loadSlangWords("src/public/slang_modified.txt");
+        if (slangWordMap == null){
+            slangWordMap = new HashMap<>();
+            loadSlangWords("src/public/slang_modified.txt");
+        }
     }
 
     private void loadSlangWords(String fileName) {
@@ -36,7 +38,7 @@ public class serviceClass {
                     }
                 } else {
                     errorCount++;
-                    System.out.println("Error format in slang file at line " + count + ": Malformed line: " + line);
+                    System.out.println("Error format in slang word file at line: " + count);
                 }
             }
             reader.close();
@@ -59,10 +61,15 @@ public class serviceClass {
         }
     }
 
-    public String[] getAllSlangWords() {
+    public HashMap<String, String> getSlangWordMap() {
+        return slangWordMap;
+    }
+
+    public String[] getSlangWordList() {
         return slangWordMap.keySet().toArray(new String[0]);
     }
 
+    /*
     public String searchSlangWord(String slang) {
         return slangWordMap.getOrDefault(slang, "Slang not found");
     }
@@ -73,5 +80,6 @@ public class serviceClass {
 
     public void deleteSlangWord(String slang) {
         slangWordMap.remove(slang);
-    }
+    } 
+    */
 }
