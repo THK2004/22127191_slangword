@@ -4,11 +4,19 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+import service.serviceClass;
+
 public class guiClass extends JPanel{
+    private JList<String> slangWordList;
+    private DefaultListModel<String> slangWordListModel;
+    private serviceClass service;
+
     private JTextField searchByName;
     private JTextField searchByDesc;
 
     public guiClass(){
+        service = new serviceClass();
+        
         setLayout(new GridBagLayout());
 
         //topLeft
@@ -41,10 +49,11 @@ public class guiClass extends JPanel{
 
         //botLeft
         JPanel botLeft = new JPanel(new BorderLayout()); 
-        
         JLabel slangWordLabel = new JLabel("Slang words list");
-        String slangWord[] = {"abc", "def", "ghi"};
-        JList<String> slangWordList = new JList<>(slangWord);
+
+        slangWordListModel = new DefaultListModel<>();
+        getSlangWordList();
+        slangWordList = new JList<>(slangWordListModel);
 
         JScrollPane slangWordScrollPane = new JScrollPane(slangWordList);
         slangWordScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -140,5 +149,12 @@ public class guiClass extends JPanel{
         gbc.weighty = 1.0;
         gbc.insets = insets;
         panel.add(component, gbc);
+    }
+
+    private void getSlangWordList() {
+        String[] slangWords = service.getAllSlangWords();
+        for (String slang : slangWords) {
+            slangWordListModel.addElement(slang);
+        }
     }
 }
