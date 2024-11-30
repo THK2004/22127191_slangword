@@ -14,6 +14,9 @@ public class guiClass extends JPanel{
     private JList<String> slangWordList;
     private ArrayList<String> cachedSlangWordList;
     private DefaultListModel<String> slangWordListModel;
+    private JList<String> searchHistoryList; 
+    private DefaultListModel<String> searchHistoryModel;
+    
     private controllerClass controller;
 
     private JTextField searchByName;
@@ -48,9 +51,12 @@ public class guiClass extends JPanel{
         JPanel midLeft = new JPanel(new BorderLayout()); 
         
         JLabel searchHistoryLabel = new JLabel("Search history");
-        String searchHistory[] = {"abc", "def", "ghi", "jkl", "mno"};
-        JList<String> searchHistoryList = new JList<>(searchHistory);
 
+        searchHistoryModel = new DefaultListModel<>();
+        searchHistoryList = new JList<>(searchHistoryModel);
+        setupSearchHistoryListeners();
+
+        
         JScrollPane historyScrollPane = new JScrollPane(searchHistoryList);
         historyScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         historyScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -65,6 +71,7 @@ public class guiClass extends JPanel{
         slangWordListModel = new DefaultListModel<>();
         getSlangWordList();
         slangWordList = new JList<>(slangWordListModel);
+        setupSlangWordListListener();
 
         JScrollPane slangWordScrollPane = new JScrollPane(slangWordList);
         slangWordScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -215,6 +222,90 @@ public class guiClass extends JPanel{
         });
     }
     
+    private void addSearchHistory(String searchTerm) {
+        if (!searchHistoryModel.contains(searchTerm)) {
+            searchHistoryModel.add(0, searchTerm);
+        }
+        
+        if (searchHistoryModel.size() > 50) {
+            searchHistoryModel.remove(0);
+        }
+    }
+
+    private void setupSearchHistoryListeners() {
+        searchByName.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String searchText = searchByName.getText().trim();
+
+                    if (!searchText.isEmpty() && controller.searchByName(searchText) != null) {
+                        addSearchHistory(searchText);
+                    }
+                }
+            }
+        });
+
+        searchByDesc.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String searchText = searchByDesc.getText().trim();
+
+                    ArrayList<String> results = controller.searchByDescription(searchText);
+                    if (!searchText.isEmpty() && !results.isEmpty()) {
+                        addSearchHistory(searchText);
+                    }
+                }
+            }
+        });
+
+        // Double-click listener for history list
+        searchHistoryList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    String selectedHistory = searchHistoryList.getSelectedValue();
+                    if (selectedHistory != null) {
+                        String result = controller.searchByName(selectedHistory);
+                        if (result == null || result.isEmpty()) {
+                            ArrayList<String> results = controller.searchByDescription(selectedHistory);
+                            if (results.isEmpty()) {
+                                contentTextArea.setText("No results found for: " + selectedHistory);
+                            } else {
+                                String resultMessage = "";
+                                for (String res : results) {
+                                    resultMessage = resultMessage + res + "\n";
+                                }
+                                contentTextArea.setText(resultMessage);
+                            }
+                        } else {
+                            contentTextArea.setText(result);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void setupSlangWordListListener() {
+        slangWordList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    String selectedSlang = slangWordList.getSelectedValue();
+                    if (selectedSlang != null) {
+                        String result = controller.searchByName(selectedSlang);
+                        if (result == null || result.isEmpty()) {
+                            contentTextArea.setText("No details found for slang: " + selectedSlang);
+                        } else {
+                            contentTextArea.setText(result);
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     public static void createAndShowGUI(){
         JFrame.setDefaultLookAndFeelDecorated(true);
