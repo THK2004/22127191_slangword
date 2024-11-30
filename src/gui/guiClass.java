@@ -23,6 +23,11 @@ public class guiClass extends JPanel{
     private JTextField searchByDesc;
     private JTextArea contentTextArea;
 
+    private JButton addButton;
+    private JButton editButton;
+    private JButton deleteButton;
+    private JButton resetButton;
+
     public guiClass(){
         controller = new controllerClass();
         cachedSlangWordList = new ArrayList<String>(Arrays.asList(controller.getSlangWordList()));
@@ -106,10 +111,12 @@ public class guiClass extends JPanel{
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 5, 5)); // 2x2 grid for buttons with spacing
         
-        JButton addButton = new JButton("Add");
-        JButton editButton = new JButton("Edit");
-        JButton deleteButton = new JButton("Delete");
-        JButton resetButton = new JButton("Reset");
+        addButton = new JButton("Add");
+        editButton = new JButton("Edit");
+        deleteButton = new JButton("Delete");
+        resetButton = new JButton("Reset");
+
+        setupTopRightButtonListeners();
 
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
@@ -228,7 +235,7 @@ public class guiClass extends JPanel{
         }
         
         if (searchHistoryModel.size() > 50) {
-            searchHistoryModel.remove(0);
+            searchHistoryModel.remove(searchHistoryModel.size() - 1);
         }
     }
 
@@ -301,6 +308,128 @@ public class guiClass extends JPanel{
                         } else {
                             contentTextArea.setText(result);
                         }
+                    }
+                }
+            }
+        });
+    }
+
+    private void refreshSlangWordList() {
+        slangWordListModel.clear();
+        cachedSlangWordList = new ArrayList<String>(Arrays.asList(controller.getSlangWordList()));
+        slangWordListModel.addAll(cachedSlangWordList);
+    }
+
+    private void refreshText() {
+        searchByName.setText(null);
+        searchByDesc.setText(null);
+        contentTextArea.setText(null);
+    }
+
+    private void setupTopRightButtonListeners() {
+        // Add button
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String slang = JOptionPane.showInputDialog(guiClass.this, "Enter slang word:");
+                if (slang != null && !slang.isEmpty()) {
+                    String existingMeaning = controller.getMeaningBySlang(slang.trim());
+        
+                    if (!existingMeaning.equals("Slang word not found")) {
+                        String[] options = {"Overwrite", "Add Meaning", "Cancel"};
+                        int option = JOptionPane.showOptionDialog(
+                                guiClass.this,
+                                "Slang word already exists. Do you want to overwrite it or add a second meaning?",
+                                "Slang exists",
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.INFORMATION_MESSAGE,
+                                null,
+                                options,
+                                options[0]
+                        );
+        
+                        if (option == 0) { // Overwrite
+                            String meaning = JOptionPane.showInputDialog(guiClass.this, "Enter new meaning:");
+                            if (meaning != null && !meaning.isEmpty()) {
+                                controller.addSlangWord(slang.trim(), meaning.trim());
+                                JOptionPane.showMessageDialog(guiClass.this, "Slang word updated successfully!");
+                            }
+                        } else if (option == 1) {  // Add meaning
+                            String meaning = JOptionPane.showInputDialog(guiClass.this, "Enter the meaning:");
+                            if (meaning != null && !meaning.isEmpty()) {
+                                String updatedMeaning = existingMeaning + " | " + meaning.trim();
+                                controller.addSlangWord(slang.trim(), updatedMeaning);
+                                JOptionPane.showMessageDialog(guiClass.this, "More meaning added successfully!");
+                            }
+                        }
+                    } else {
+                        String meaning = JOptionPane.showInputDialog(guiClass.this, "Enter meaning:");
+                        if (meaning != null && !meaning.isEmpty()) {
+                            controller.addSlangWord(slang.trim(), meaning.trim());
+                            JOptionPane.showMessageDialog(guiClass.this, "Slang word added successfully!");
+                        }
+                    }
+        
+                    refreshText();
+                    refreshSlangWordList();
+                }
+            }
+        });
+        
+    
+        // Edit button
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String slang = JOptionPane.showInputDialog(guiClass.this, "Enter slang word to edit:");
+                if (slang != null && !slang.isEmpty()) {
+                    if (!controller.slangWordExists(slang.trim())) {
+                        JOptionPane.showMessageDialog(guiClass.this, "Slang word not found!");
+                        return;
+                    }
+
+                    String currentMeaning = controller.getMeaningBySlang(slang.trim());
+                    String meaning = JOptionPane.showInputDialog(guiClass.this, 
+                        "Current meaning: " + currentMeaning + "\nEnter new meaning:");
+                    if (meaning != null && !meaning.isEmpty()) {
+                        if (controller.editSlangWord(slang.trim(), meaning.trim())) {
+                            JOptionPane.showMessageDialog(guiClass.this, "Slang word updated successfully!");
+                            refreshText();
+                        }
+                    }
+                }
+            }
+        });
+    
+        // Delete button
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String slang = JOptionPane.showInputDialog(guiClass.this, "Enter slang word to delete:");
+                if (slang != null && !slang.isEmpty()) {
+                    if (controller.deleteSlangWord(slang.trim())) {
+                        JOptionPane.showMessageDialog(guiClass.this, "Slang word deleted successfully!");
+                        refreshText();
+                        refreshSlangWordList();
+                    } else {
+                        JOptionPane.showMessageDialog(guiClass.this, "Slang word not found!");
+                    }
+                }
+            }
+        });
+    
+        // Reset button
+        resetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(guiClass.this, "Are you sure you want to reset?", "Reset", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    if (controller.resetSlangWords()) {
+                        JOptionPane.showMessageDialog(guiClass.this, "Slang words reset successfully!");
+                        refreshText();
+                        refreshSlangWordList();
+                    } else {
+                        JOptionPane.showMessageDialog(guiClass.this, "Error resetting slang words.");
                     }
                 }
             }

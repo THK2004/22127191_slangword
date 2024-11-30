@@ -2,28 +2,31 @@ package service;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 
 public class serviceClass {
     private HashMap<String, String> slangWordMap;
+    private String original = "src/public/slang.txt";
+    private String modified = "src/public/slang_modified.txt";
 
     public serviceClass() {
         if (slangWordMap == null){
             slangWordMap = new HashMap<>();
-            loadSlangWords("src/public/slang_modified.txt");
+            loadSlangWords(modified);
         }
     }
 
     private void loadSlangWords(String fileName) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
-            reader.readLine();
+            BufferedReader br = new BufferedReader(new FileReader(fileName));
+            br.readLine();
             int count = 1;
             int errorCount = 0;
             ArrayList<String> duplicateKeys = new ArrayList<String>();
             String line;
             
-            while ((line = reader.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 count++;
                 String[] parts = line.split("`", 2);
                 
@@ -41,7 +44,7 @@ public class serviceClass {
                     System.out.println("Error format in slang word file at line: " + count);
                 }
             }
-            reader.close();
+            br.close();
 
             // Report findings
             int size = slangWordMap.size();
@@ -69,17 +72,42 @@ public class serviceClass {
         return slangWordMap.keySet().toArray(new String[0]);
     }
 
-    /*
-    public String searchSlangWord(String slang) {
-        return slangWordMap.getOrDefault(slang, "Slang not found");
+    public boolean saveSlangWordsToFile() {
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("src/public/slang_modified.txt"));
+            bw.write("Slag`Meaning\n");
+            for (Map.Entry<String, String> entry : slangWordMap.entrySet()) {
+                bw.write(entry.getKey() + "`" + entry.getValue() + "\n");
+            }
+            bw.flush();
+            bw.close();
+            return true;
+        } catch (IOException e) {
+            System.out.println("Error saving slang words to file: " + e.getMessage());
+            return false;
+        }
     }
 
-    public void addOrUpdateSlangWord(String slang, String meaning) {
-        slangWordMap.put(slang, meaning);
-    }
+    public boolean resetSlangWords() {
+        try {
+            FileInputStream fis = new FileInputStream(original);
+            FileOutputStream fos = new FileOutputStream(modified);
 
-    public void deleteSlangWord(String slang) {
-        slangWordMap.remove(slang);
-    } 
-    */
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+            }
+            fis.close();
+            fos.flush();
+            fos.close();
+        }catch (IOException e) {
+            System.out.println("Error resetting slang words: " + e.getMessage());
+            return false;
+        }
+
+        slangWordMap.clear();
+        loadSlangWords("src/public/slang_modified.txt");
+        return true;
+    }
 }
