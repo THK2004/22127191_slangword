@@ -259,7 +259,7 @@ public class guiClass extends JPanel{
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     String searchText = searchByName.getText().trim();
 
-                    if (!searchText.isEmpty() && controller.searchByName(searchText) != null) {
+                    if (!searchText.isEmpty() && !controller.searchByName(searchText).isEmpty()) {
                         addSearchHistory(searchText);
                     }
                 }
@@ -288,7 +288,7 @@ public class guiClass extends JPanel{
                     String selectedHistory = searchHistoryList.getSelectedValue();
                     if (selectedHistory != null) {
                         String result = controller.searchByName(selectedHistory);
-                        if (result.equals("Slang not found")) {
+                        if (result.isEmpty()) {
                             ArrayList<String> results = controller.searchByDescription(selectedHistory);
                             if (results.isEmpty()) {
                                 contentTextArea.setText("No results found for: " + selectedHistory);
@@ -551,7 +551,74 @@ public class guiClass extends JPanel{
         }
     }
 
+    private JMenuBar setupMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+    
+        JMenu menu = new JMenu("Menu");
+    
+        JMenuItem randomItem = new JMenuItem("Random word");
+        JMenuItem addMenuItem = new JMenuItem("Add Slang");
+        JMenuItem editMenuItem = new JMenuItem("Edit Slang");
+        JMenuItem deleteMenuItem = new JMenuItem("Delete Slang");
+        JMenuItem resetMenuItem = new JMenuItem("Reset Slang");
+        JMenuItem quiz1MenuItem = new JMenuItem("Start Quiz 1");
+        JMenuItem quiz2MenuItem = new JMenuItem("Start Quiz 2");
+    
+        randomItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                randomWordButton.doClick();
+            }
+        });
+        addMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addButton.doClick();
+            }
+        });
+        editMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editButton.doClick();
+            }
+        });
+        deleteMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteButton.doClick();
+            }
+        });
+        resetMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetButton.doClick();
+            }
+        });
+        quiz1MenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startQuiz1Button.doClick();
+            }
+        });
+        quiz2MenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startQuiz2Button.doClick();
+            }
+        });
+    
+        menu.add(randomItem);
+        menu.add(addMenuItem);
+        menu.add(editMenuItem);
+        menu.add(deleteMenuItem);
+        menu.add(resetMenuItem);
+        menu.add(quiz1MenuItem);
+        menu.add(quiz2MenuItem);
 
+        menuBar.add(menu);
+
+        return menuBar;
+    }
 
     public static void createAndShowGUI(){
         JFrame.setDefaultLookAndFeelDecorated(true);
@@ -562,9 +629,10 @@ public class guiClass extends JPanel{
 
         guiClass newContentPane = new guiClass();
         newContentPane.setOpaque(true);
+        
+        frame.setJMenuBar(newContentPane.setupMenuBar());
         frame.setContentPane(newContentPane);
 
-        //frame.setSize(800, 500);
         frame.pack();
         frame.setLocationRelativeTo(null);
         
