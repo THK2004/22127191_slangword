@@ -36,6 +36,9 @@ public class guiClass extends JPanel{
 
     public guiClass(){
         controller = new controllerClass();
+
+        // How to convert String[] to ArrayList<String>
+        // https://stackoverflow.com/questions/10230929/how-can-i-convert-string-to-arrayliststring
         cachedSlangWordKeyList = new ArrayList<String>(Arrays.asList(controller.getSlangWordKeyList()));
 
         setLayout(new GridBagLayout());
@@ -101,13 +104,14 @@ public class guiClass extends JPanel{
         meaningTextArea.setEditable(false);
         meaningTextArea.setOpaque(false);
         meaningTextArea.setFocusable(false);
-        meaningTextArea.setMaximumSize(new Dimension(300, 100));
+        meaningTextArea.setMaximumSize(new Dimension(150, 50));
 
         randomWordButton = new JButton("Show Random Word");
         setupRandomWordFeature();
 
+        // How to center elements in the BoxLayout using center of the element
+        // https://stackoverflow.com/questions/2560784/how-to-center-elements-in-the-boxlayout-using-center-of-the-element
         randomWordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        meaningTextArea.setAlignmentX(Component.CENTER_ALIGNMENT);
         randomWordButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         topMid.add(randomWordLabel);
@@ -187,6 +191,8 @@ public class guiClass extends JPanel{
     }
 
     private void addComponent(JPanel panel, JComponent component, int gridx, int gridy, int gridwidth, int gridheight, int ipadx, int ipady, int fill, int anchor, Insets insets) {
+        // How to use GridBagLayout
+        // https://docs.oracle.com/javase/tutorial/uiswing/layout/gridbag.html
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = gridx;
         gbc.gridy = gridy;
@@ -209,6 +215,8 @@ public class guiClass extends JPanel{
     }
 
     private void setupSearchByNameListener() {
+        // How to add listener to the underlying Document
+        // https://stackoverflow.com/questions/3953208/value-change-listener-to-jtextfield
         searchByName.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -340,6 +348,9 @@ public class guiClass extends JPanel{
     }
 
     private void setupTopRightButtonListeners() {
+        // JOptionPanel document
+        // https://docs.oracle.com/javase/8/docs/api/javax/swing/JOptionPane.html
+
         // Add button
         addButton.addActionListener(new ActionListener() {
             @Override
