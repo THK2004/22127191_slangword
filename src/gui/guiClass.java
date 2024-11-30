@@ -2,7 +2,7 @@ package gui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import java.util.Collections;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -12,7 +12,7 @@ import controller.controllerClass;
 
 public class guiClass extends JPanel{
     private JList<String> slangWordList;
-    private ArrayList<String> cachedSlangWordList;
+    private ArrayList<String> cachedSlangWordKeyList;
     private DefaultListModel<String> slangWordListModel;
     private JList<String> searchHistoryList; 
     private DefaultListModel<String> searchHistoryModel;
@@ -28,9 +28,15 @@ public class guiClass extends JPanel{
     private JButton deleteButton;
     private JButton resetButton;
 
+    private JLabel randomWordLabel;
+    private JTextArea meaningTextArea;
+    private JButton randomWordButton;
+    private JButton startQuiz1Button;
+    private JButton startQuiz2Button;
+
     public guiClass(){
         controller = new controllerClass();
-        cachedSlangWordList = new ArrayList<String>(Arrays.asList(controller.getSlangWordList()));
+        cachedSlangWordKeyList = new ArrayList<String>(Arrays.asList(controller.getSlangWordKeyList()));
 
         setLayout(new GridBagLayout());
 
@@ -74,7 +80,7 @@ public class guiClass extends JPanel{
         JLabel slangWordLabel = new JLabel("Slang words list");
 
         slangWordListModel = new DefaultListModel<>();
-        getSlangWordList();
+        addSlangWordKeyListToModel();
         slangWordList = new JList<>(slangWordListModel);
         setupSlangWordListListener();
 
@@ -89,32 +95,37 @@ public class guiClass extends JPanel{
         JPanel topMid = new JPanel();
         topMid.setLayout(new BoxLayout(topMid, BoxLayout.Y_AXIS));
 
-        JLabel onThisDayLabel = new JLabel("On This Day Slang Word: Example");
-        JLabel meaningLabel = new JLabel("Meaning: Example");
-        JButton randomWordButton = new JButton("Show Random Word");
-        JButton startQuizButton = new JButton("Start Quiz");
+        randomWordLabel = new JLabel();
+        meaningTextArea = new JTextArea();
+        meaningTextArea.setLineWrap(true);
+        meaningTextArea.setEditable(false);
+        meaningTextArea.setOpaque(false);
+        meaningTextArea.setFocusable(false);
+        meaningTextArea.setMaximumSize(new Dimension(300, 100));
 
-        onThisDayLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        meaningLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        randomWordButton = new JButton("Show Random Word");
+        setupRandomWordFeature();
+
+        randomWordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        meaningTextArea.setAlignmentX(Component.CENTER_ALIGNMENT);
         randomWordButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        startQuizButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        topMid.add(onThisDayLabel);
-        topMid.add(meaningLabel);
-        topMid.add(Box.createRigidArea(new Dimension(0, 10)));
+        topMid.add(randomWordLabel);
+        topMid.add(meaningTextArea);
+        topMid.add(Box.createVerticalGlue());
         topMid.add(randomWordButton);
-        topMid.add(Box.createRigidArea(new Dimension(0, 5)));
-        topMid.add(startQuizButton);
 
         //topRight
-        JPanel topRight = new JPanel(new BorderLayout()); // Use BorderLayout for flexibility
+        JPanel topRight = new JPanel(new BorderLayout());
 
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 5, 5)); // 2x2 grid for buttons with spacing
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         
         addButton = new JButton("Add");
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
         resetButton = new JButton("Reset");
+        startQuiz1Button = new JButton("Quiz 1");
+        startQuiz2Button = new JButton("Quiz 2");
 
         setupTopRightButtonListeners();
 
@@ -122,9 +133,11 @@ public class guiClass extends JPanel{
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(resetButton);
+        buttonPanel.add(startQuiz1Button);
+        buttonPanel.add(startQuiz2Button);
 
         topRight.add(buttonPanel, BorderLayout.CENTER);
-        topRight.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        topRight.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
 
         //Content
         JPanel content = new JPanel(new BorderLayout());
@@ -151,7 +164,7 @@ public class guiClass extends JPanel{
         String slang = searchByName.getText().trim();
         String result = controller.searchByName(slang);
     
-        if (result.equals("Slang not found")) {
+        if (result.isEmpty()) {
             contentTextArea.setText("No results found for slang: " + slang);
         } else {
             contentTextArea.setText(result);
@@ -189,8 +202,8 @@ public class guiClass extends JPanel{
         panel.add(component, gbc);
     }
 
-    private void getSlangWordList() {
-        for (String slang : cachedSlangWordList) {
+    private void addSlangWordKeyListToModel() {
+        for (String slang : cachedSlangWordKeyList) {
             slangWordListModel.addElement(slang);
         }
     }
@@ -217,9 +230,9 @@ public class guiClass extends JPanel{
                 slangWordListModel.clear();
     
                 if (query.isEmpty()) {
-                    slangWordListModel.addAll(cachedSlangWordList);
+                    slangWordListModel.addAll(cachedSlangWordKeyList);
                 } else {
-                    for (String slang : cachedSlangWordList) {
+                    for (String slang : cachedSlangWordKeyList) {
                         if (slang.toLowerCase().startsWith(query)) {
                             slangWordListModel.addElement(slang);
                         }
@@ -275,7 +288,7 @@ public class guiClass extends JPanel{
                     String selectedHistory = searchHistoryList.getSelectedValue();
                     if (selectedHistory != null) {
                         String result = controller.searchByName(selectedHistory);
-                        if (result == null || result.isEmpty()) {
+                        if (result.equals("Slang not found")) {
                             ArrayList<String> results = controller.searchByDescription(selectedHistory);
                             if (results.isEmpty()) {
                                 contentTextArea.setText("No results found for: " + selectedHistory);
@@ -303,7 +316,7 @@ public class guiClass extends JPanel{
                     String selectedSlang = slangWordList.getSelectedValue();
                     if (selectedSlang != null) {
                         String result = controller.searchByName(selectedSlang);
-                        if (result == null || result.isEmpty()) {
+                        if (result.isEmpty()) {
                             contentTextArea.setText("No details found for slang: " + selectedSlang);
                         } else {
                             contentTextArea.setText(result);
@@ -316,8 +329,8 @@ public class guiClass extends JPanel{
 
     private void refreshSlangWordList() {
         slangWordListModel.clear();
-        cachedSlangWordList = new ArrayList<String>(Arrays.asList(controller.getSlangWordList()));
-        slangWordListModel.addAll(cachedSlangWordList);
+        cachedSlangWordKeyList = new ArrayList<String>(Arrays.asList(controller.getSlangWordKeyList()));
+        slangWordListModel.addAll(cachedSlangWordKeyList);
     }
 
     private void refreshText() {
@@ -376,7 +389,6 @@ public class guiClass extends JPanel{
             }
         });
         
-    
         // Edit button
         editButton.addActionListener(new ActionListener() {
             @Override
@@ -434,7 +446,112 @@ public class guiClass extends JPanel{
                 }
             }
         });
+    
+        // Quiz 1 button
+        startQuiz1Button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String randomWord = controller.getARandomWord();
+                String[] parts = randomWord.split("->");
+                String slangWord = parts[0].trim();
+                String correctDefinition = parts[1].trim();
+        
+                ArrayList<String> options = new ArrayList<String>(controller.getRandomDefinitions(correctDefinition));
+                options.add(correctDefinition);
+                Collections.shuffle(options);
+        
+                String[] optionArray = options.toArray(new String[0]);
+        
+                // Show the options in a dialog with 4 buttons
+                int userAnswerIndex = JOptionPane.showOptionDialog(
+                    guiClass.this,
+                    "What is the meaning of: " + slangWord,
+                    "Quiz 1",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    optionArray,
+                    optionArray[0]
+                );
+        
+                if (userAnswerIndex != -1) {
+                    String userAnswer = optionArray[userAnswerIndex];
+                    if (userAnswer.equals(correctDefinition)) {
+                        JOptionPane.showMessageDialog(guiClass.this, "Correct!", "Result", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(guiClass.this, "Wrong! The correct answer is: " + correctDefinition, "Result", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+        
+        // Quiz 2 button
+        startQuiz2Button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String randomWord = controller.getARandomWord();
+                String[] parts = randomWord.split("->");
+                String correctSlang = parts[0].trim();
+                String definition = parts[1].trim();
+        
+                ArrayList<String> options = new ArrayList<String>(controller.getRandomSlangWords(correctSlang));
+                options.add(correctSlang);
+                Collections.shuffle(options);
+        
+                String[] optionArray = options.toArray(new String[0]);
+        
+                // Show the options in a dialog with 4 buttons
+                int userAnswerIndex = JOptionPane.showOptionDialog(
+                    guiClass.this,
+                    "Which slang word means: " + definition,
+                    "Quiz 2",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    optionArray,
+                    optionArray[0]
+                );
+        
+                if (userAnswerIndex != -1) {
+                    String userAnswer = optionArray[userAnswerIndex];
+                    if (userAnswer.equals(correctSlang)) {
+                        JOptionPane.showMessageDialog(guiClass.this, "Correct!", "Result", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(guiClass.this, "Wrong! The correct answer is: " + correctSlang, "Result", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
     }
+
+    private void setupRandomWordFeature() {
+        displayRandomWord();
+    
+        randomWordButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayRandomWord();
+            }
+        });
+    }
+    
+    private void displayRandomWord() {
+        String randomWord = controller.getARandomWord();
+    
+        if (randomWord.contains("->")) {
+            String[] parts = randomWord.split("->");
+            String slang = parts[0].trim();
+            String meaning = parts[1].trim();
+
+            randomWordLabel.setText("Random: " + slang);
+            meaningTextArea.setText("Meaning: " + meaning);
+        } else {
+            randomWordLabel.setText("Random:");
+            meaningTextArea.setText("Meaning: " + randomWord);
+        }
+    }
+
+
 
     public static void createAndShowGUI(){
         JFrame.setDefaultLookAndFeelDecorated(true);

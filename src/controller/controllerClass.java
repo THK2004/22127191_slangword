@@ -3,8 +3,11 @@ package controller;
 import service.serviceClass;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class controllerClass {
     private serviceClass service;
@@ -15,8 +18,8 @@ public class controllerClass {
         slangWordMap = service.getSlangWordMap();
     }
 
-    public String[] getSlangWordList() {
-        return service.getSlangWordList();
+    public String[] getSlangWordKeyList() {
+        return service.getSlangWordKeyList();
     }
 
     public String searchByName(String slang) {
@@ -25,7 +28,7 @@ public class controllerClass {
                 return entry.getKey() + " -> " + entry.getValue();
             }
         }
-        return "Slang not found";
+        return "";
     }
 
     public ArrayList<String> searchByDescription(String keyword) {
@@ -100,5 +103,35 @@ public class controllerClass {
 
     public boolean resetSlangWords(){
         return service.resetSlangWords();
+    }
+
+    public String getARandomWord() {
+        String[] slangWords = service.getSlangWordKeyList();
+        
+        Random random = new Random();
+        int randomIndex = random.nextInt(slangWords.length);
+    
+        String randomSlang = slangWords[randomIndex];
+        String randomMeaning = slangWordMap.get(randomSlang);
+    
+        return randomSlang + " -> " + randomMeaning;
+    }
+
+    public List<String> getRandomDefinitions(String correctDefinition) {
+        List<String> definitions = new ArrayList<String>(slangWordMap.values());
+        definitions.remove(correctDefinition);
+        Collections.shuffle(definitions);
+
+        // Return 3 random incorrect definitions
+        return definitions.subList(0, 3); 
+    }
+
+    public List<String> getRandomSlangWords(String correctSlang) {
+        List<String> slangWords = new ArrayList<String>(slangWordMap.keySet());
+        slangWords.remove(correctSlang);
+        Collections.shuffle(slangWords);
+
+        // Return 3 random incorrect slang words
+        return slangWords.subList(0, 3); 
     }
 }

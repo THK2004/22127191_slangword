@@ -68,7 +68,7 @@ public class serviceClass {
         return slangWordMap;
     }
 
-    public String[] getSlangWordList() {
+    public String[] getSlangWordKeyList() {
         return slangWordMap.keySet().toArray(new String[0]);
     }
 
